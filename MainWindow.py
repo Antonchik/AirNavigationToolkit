@@ -137,7 +137,6 @@ class App(QMainWindow):
         self.tab_widget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
-        self.setWindowTitle('Center')
         self.statusBar().showMessage('Ready')
         self.show()
 
