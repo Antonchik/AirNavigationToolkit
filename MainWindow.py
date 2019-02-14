@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow(QMainWindow, object):
+class App(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.title = "Air Navigation Toolkit"
+        self.width = 1200
+        self.height = 800
         self.setup_ui(self)
 
     def setup_ui(self, main_window):
         main_window.setObjectName("main_window")
-        main_window.resize(1200, 800)
-        main_window.setMinimumSize(QtCore.QSize(1200, 800))
-        main_window.setMaximumSize(QtCore.QSize(1200, 800))
+        main_window.setWindowTitle(self.title)
+        main_window.resize(self.width, self.height)
+        main_window.setMinimumSize(QtCore.QSize(self.width, self.height))
+        main_window.setMaximumSize(QtCore.QSize(self.width, self.height))
         font = QtGui.QFont()
         font.setFamily("GOST type A")
         font.setPointSize(14)
         main_window.setFont(font)
-        main_window.setWindowTitle("Air Navigation Toolkit")
 
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("icon_globe.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -134,11 +137,21 @@ class Ui_MainWindow(QMainWindow, object):
         self.tab_widget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
+        self.setWindowTitle('Center')
+        self.statusBar().showMessage('Ready')
+        self.show()
+
     def retranslateUi(self, main_window):
         _translate = QtCore.QCoreApplication.translate
         self.menu_file.setTitle(_translate("main_window", "File"))
         self.menu_save.setTitle(_translate("main_window", "Save"))
         self.menu_help.setTitle(_translate("main_window", "Help"))
+
+    def center(self):
+        frame = self.frameGeometry()
+        monitor = QDesktopWidget().availableGeometry().center()
+        frame.moveCenter(monitor)
+        self.move(frame.topLeft())
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self,
