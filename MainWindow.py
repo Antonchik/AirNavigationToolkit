@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-
+from PyQt5.QtWidgets import QMainWindow, QMessageBox
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow(object):
+class Ui_MainWindow(QMainWindow, object):
+    def __init__(self):
+        super().__init__()
+        self.setup_ui(self)
+
     def setup_ui(self, main_window):
         main_window.setObjectName("main_window")
         main_window.resize(1200, 800)
@@ -135,5 +139,16 @@ class Ui_MainWindow(object):
         self.menu_file.setTitle(_translate("main_window", "File"))
         self.menu_save.setTitle(_translate("main_window", "Save"))
         self.menu_help.setTitle(_translate("main_window", "Help"))
+
+    def closeEvent(self, event):
+        reply = QMessageBox.question(self,
+                                     'Message',
+                                     "Are you sure to quit?",
+                                     QMessageBox.Yes | QMessageBox.No,
+                                     QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
 
