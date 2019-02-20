@@ -9,16 +9,12 @@ class GeoPoint:
         """Adds name(code) to geographic point"""
         self.__geo_point['name'] = name
 
-    def set_coordinates(self, latitude, longitude):
-        """Adds latitude and longitude coordinates (in radians) to geographic point"""
-        if float(latitude) and float(longitude):
-            self.__geo_point = {'latitude': latitude, 'longitude': longitude}
-
     def set_coordinates(self, coordinates_tuple):
         """Adds list[lat, lon] of coordinates (in radians) to geographic point"""
         lat = coordinates_tuple[0]
         lon = coordinates_tuple[1]
-        self.set_coordinates(lat, lon)
+        if float(lat) and float(lon):
+            self.__geo_point = {'latitude': lat, 'longitude': lon}
 
     def set_latitude(self, latitude_rad):
         """Adds latitude (in radians) to geographic point"""
