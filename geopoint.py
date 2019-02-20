@@ -3,7 +3,10 @@ class GeoPoint:
     """Class Geographic Point.
     Stores name, coordinates in radians and datum information for a geographic point"""
     def __init__(self, name='g.p.', latitude=0.0, longitude=0.0, datum='WGS-84'):
-        self.__geo_point = {'name': name, 'latitude': latitude, 'longitude': longitude, 'datum': datum}
+        self.__geo_point = {'name': name,
+                            'latitude': latitude,
+                            'longitude': longitude,
+                            'datum': datum}
 
     def set_name(self, name):
         """Adds name(code) to geographic point"""
@@ -14,7 +17,8 @@ class GeoPoint:
         lat = coordinates_tuple[0]
         lon = coordinates_tuple[1]
         if float(lat) and float(lon):
-            self.__geo_point = {'latitude': lat, 'longitude': lon}
+            self.__geo_point = {'latitude': lat,
+                                'longitude': lon}
 
     def set_latitude(self, latitude_rad):
         """Adds latitude (in radians) to geographic point"""

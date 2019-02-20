@@ -3,14 +3,16 @@ class PolarPoint:
     """Class Polar Point.
     Stores azimuth (in radians) and distance (in meters)"""
     def __init__(self, azimuth=0.0, distance=0.0):
-        self.__polar_point = {'azimuth': azimuth, 'distance': distance}
+        self.__polar_point = {'azimuth': azimuth,
+                              'distance': distance}
 
     def set_polar_coords(self, polar_coords_tuple):
         """Adds tuple(azimuth, distance) of polar coordinates to polar point"""
         azimuth = polar_coords_tuple[0]
         distance = polar_coords_tuple[1]
         if float(azimuth) and float(distance):
-            self.__polar_point = {'azimuth': azimuth, 'distance': distance}
+            self.__polar_point = {'azimuth': azimuth,
+                                  'distance': distance}
 
     def set_azimuth(self, azimuth):
         """Adds azimuth (in radians) to polar point"""
