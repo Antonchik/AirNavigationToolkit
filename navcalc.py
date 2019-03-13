@@ -1,6 +1,8 @@
 from math import sqrt, tan, pi, radians
 from geographiclib.geomath import Math as gm
 from geographiclib.geodesic import Geodesic
+from geopoint import GeoPoint
+from polarpoint import PolarPoint
 
 ELLIPSOIDS = {
     # model           major (km)   minor (km)     flattening
@@ -25,29 +27,33 @@ class NavCalc(object):
             self.ellipsoid = ELLIPSOIDS[ellipsoid_key]
             self.ellipsoid_key = ellipsoid_key
 
-    def direct(geo_point_start, polar_point):
+    def direct(start_point: GeoPoint, polar: PolarPoint):
         """Resolves direct geodesic task using Karney's algorithm"""
-        lat1 = geo_point_start['latitude']
-        lon1 = geo_point_start['longitude']
-        azimuth = polar_point['azimuth']
-        distance = polar_point['distance']
+        lat1 = start_point.latitude()
+        lon1 = start_point.longitude()
+        azimuth = polar.azimuth()
+        distance = polar.distance()
         result = NavCalc.geo_task.Direct(lat1, lon1, azimuth, distance)
-        return {'latitude': result['lat2'],
-                'longitude': result['lon2'],
-                'next_azimuth': result['azi2'],
-                'datum': NavCalc.ellipsoid_key}
+        new_geo_point = GeoPoint(latitude=result['lat2'],
+                                 longitude=result['lon2'],
+                                 datum=NavCalc.ellipsoid_key)
+        return new_geo_point
     direct = staticmethod(direct)
 
-    def inverse(geo_point_start, geo_point_end):
-        """Resolves inverse geodesic task using Karney's algorithm"""
-        lat1 = geo_point_start['latitude']
-        lon1 = geo_point_start['longitude']
-        lat2 = geo_point_end['latitude']
-        lon2 = geo_point_end['longitude']
+    def inverse(start_point: GeoPoint, end_point: GeoPoint, subsequent=False):
+        """Resolves inverse geodesic task using Karney's algorithm.
+        If 'subsequent' is True it returns azimuth at the end point (i.e.
+        considering meridians convergence"""
+        lat1 = start_point.latitude()
+        lon1 = start_point.longitude()
+        lat2 = end_point.latitude()
+        lon2 = end_point.longitude()
         result = NavCalc.geo_task.Inverse(lat1, lon1, lat2, lon2)
-        return {'azimuth': result['azi1'],
-                'distance': result['s12'],
-                'next_azimuth': result['azi2']}
+        new_polar_point = PolarPoint(azimuth=result['azi1'],
+                                     distance=result['s12'])
+        if subsequent:
+            new_polar_point.set_azimuth(result['azi2'])
+        return new_polar_point
     inverse = staticmethod(inverse)
 
     def ias2tas(indicated_airspeed_kmh, altitude_meters, var=15.0):
