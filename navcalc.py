@@ -1,5 +1,4 @@
 from math import sqrt, tan, pi, radians
-from geographiclib.geomath import Math as gm
 from geographiclib.geodesic import Geodesic
 from geopoint import GeoPoint
 from polarpoint import PolarPoint
@@ -43,7 +42,7 @@ class NavCalc(object):
     def inverse(start_point: GeoPoint, end_point: GeoPoint, subsequent=False):
         """Resolves inverse geodesic task using Karney's algorithm.
         If 'subsequent' is True it returns azimuth at the end point (i.e.
-        considering meridians convergence"""
+        considering meridians convergence)."""
         lat1 = start_point.latitude()
         lon1 = start_point.longitude()
         lat2 = end_point.latitude()
@@ -60,7 +59,8 @@ class NavCalc(object):
         """Calculates true air speed for specific altitude"""
         ias = indicated_airspeed_kmh
         tmp_decr = NavCalc.temp_gradient * altitude_meters
-        return ias * 171233 * pow((NavCalc.temp_isa + var - tmp_decr), 0.5) / pow((NavCalc.temp_isa - tmp_decr), 2.628)
+        return (ias * 171233 * pow((NavCalc.temp_isa + var - tmp_decr), 0.5) /
+                pow((NavCalc.temp_isa - tmp_decr), 2.628))
     ias2tas = staticmethod(ias2tas)
 
     def knots(airspeed_kmh):
@@ -89,14 +89,17 @@ class NavCalc(object):
     wind_icao = staticmethod(wind_icao)
 
     def temperature_isa(altitude_meters, var=15.0):
-        """Calculates temperature (for International Standard Atmosphere) at specific altitude"""
+        """Calculates temperature (for International Standard Atmosphere)
+        at a specific altitude"""
         tmp_decrease = NavCalc.temp_gradient * altitude_meters
         return NavCalc.temp_isa + var - tmp_decrease
     temperature_isa = staticmethod(temperature_isa)
 
     def mach(altitude_meters, indicated_airspeed=None, var=15.0):
-        """Calculates sound speed in m/s or aircraft speed in a Mach number at specific altitude"""
-        sonic_speed = 20.046796 * sqrt(NavCalc.temperature_isa(altitude_meters, var))
+        """Calculates sound speed in m/s or aircraft speed in a Mach number
+        at a specific altitude"""
+        sonic_speed = \
+            20.046796 * sqrt(NavCalc.temperature_isa(altitude_meters, var))
         if not indicated_airspeed:
             return sonic_speed
         else:
@@ -110,12 +113,12 @@ class NavCalc(object):
     turn_rate = staticmethod(turn_rate)
 
     def turn_radius(true_airspeed, bank=25.0):
-        """Calculates radius of turn at designated angle of bank in still air, in km"""
-        return true_airspeed / (20.0 * pi * NavCalc.turn_rate(true_airspeed, bank))
+        """Calculates radius of turn at designated angle of bank in still air"""
+        return true_airspeed / (20.0*pi*NavCalc.turn_rate(true_airspeed, bank))
     turn_radius = staticmethod(turn_radius)
 
     def turn_angle(angle_cur, angle_next):
-        """Calculates value of angle between current and next """
+        """Calculates value of angle between current and next"""
         if angle_next - angle_cur > 180.0:
             return angle_next - angle_cur - 360.0
         elif angle_cur - angle_next > 180.0:
@@ -127,7 +130,3 @@ class NavCalc(object):
     def lta(turn_radius, turn_angle):
         return turn_radius * tan(radians(abs(turn_angle) / 2.0))
     lta = staticmethod(lta)
-
-# print(NavCalc.direct({'latitude': 50.0, 'longitude': 60.0}, {'azimuth': 45.0, 'distance': 65.0}))
-# print(NavCalc.geo_task.Direct(50, 60, 45, 50))
-# print(NavCalc.geo_task.Inverse(50, 60, 60, 70))
