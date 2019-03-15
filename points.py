@@ -111,3 +111,76 @@ class CartesianPoint:
     def cartesian(self):
         """Returns tuple(x, y) of cartesian coordinates from the cartesian point"""
         return self.__cartesian_point['x'], self.__cartesian_point['y']
+
+
+class WayPoint:
+    """Class Way Point.
+    Stores point's codename and coordinates as a geographic point"""
+    def __init__(self, codename: str, coordinates: GeoPoint, rnav=True):
+        self.__waypoint = {'codename': codename,
+                           'coordinates': coordinates,
+                           'rnav': rnav}
+
+    def set_codename(self, codename: str):
+        self.__waypoint['codename'] = codename
+
+    def set_coordinates(self, coordinates: GeoPoint):
+        self.__waypoint['coordinates'] = coordinates
+
+    def set_rnav(self, isrnav: bool):
+        self.__waypoint['rnav'] = isrnav
+
+    def codename(self):
+        return self.__waypoint['codename']
+
+    def coordinates(self):
+        return self.__waypoint['coordinates']
+
+    def isrnav(self):
+        return self.__waypoint['rnav']
+
+
+class ProcedurePoint:
+    def __init__(self, reference_point: WayPoint, minalt, maxalt, speedlimit, bank=25.0, flyover=False):
+        self.__procedure_point = {'reference_point': reference_point,
+                                  'minalt': minalt,
+                                  'maxalt': maxalt,
+                                  'speedlimit': speedlimit,
+                                  'bank': bank,
+                                  'flyover': flyover}
+
+    def set_reference(self, reference_point: WayPoint):
+        self.__procedure_point['reference_point'] = reference_point
+
+    def set_min_altitude(self, minimum_altitude):
+        self.__procedure_point['minalt'] = minimum_altitude
+
+    def set_max_altitude(self, maximum_altitude):
+        self.__procedure_point['maxalt'] = maximum_altitude
+
+    def set_speed_limit(self, speed_Limit):
+        self.__procedure_point['speedlimit'] = speed_Limit
+
+    def set_bank(self, bank):
+        self.__procedure_point['bank'] = bank
+
+    def set_flyover(self, flyover: bool):
+        self.__procedure_point['flyover'] = flyover
+
+    def ref_point(self):
+        return self.__procedure_point['reference_point']
+
+    def min_altitude(self):
+        return self.__procedure_point['minalt']
+
+    def max_altitude(self):
+        return self.__procedure_point['maxalt']
+
+    def speed_limit(self):
+        return self.__procedure_point['speedlimit']
+
+    def bank(self):
+        return self.__procedure_point['bank']
+
+    def isflyover(self):
+        return self.__procedure_point['flyover']
