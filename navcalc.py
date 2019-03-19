@@ -42,11 +42,12 @@ def inverse(start: GeoPoint, end: GeoPoint, datum='WGS-84', subsequent=False):
     lat2 = end.latitude()
     lon2 = end.longitude()
     problem = geodesic(datum)
-    result = problem.Inverse(lat1, lon1, lat2, lon2)
+    result = problem.Inverse(lat1, lon1,
+                             lat2, lon2)
     polar = PolarPoint(azimuth=normalize_angle(result['azi1']),
                        distance=result['s12'])
     if subsequent:
-        polar.set_azimuth(result['azi2'])
+        polar.set_azimuth(normalize_angle(result['azi2']))
     return polar
 
 
@@ -107,8 +108,7 @@ def temperature_isa(altitude_meters, var=15.0):
 def mach(altitude_meters, indicated_airspeed=None, var=15.0):
     """Calculates sound speed in m/s or aircraft speed in a Mach number
     at a specific altitude"""
-    sonic_speed = \
-        20.046796 * sqrt(temperature_isa(altitude_meters, var))
+    sonic_speed = 20.046796 * sqrt(temperature_isa(altitude_meters, var))
     if not indicated_airspeed:
         return sonic_speed
     else:
@@ -143,13 +143,16 @@ def LTA(turn_radius, turn_angle):
     return turn_radius * tan(radians(abs(turn_angle) / 2.0))
 
 
-def temperature_correction(rwy_elevation, height, var=15.0):
+def temperature_correction(runway_elevation, height, var=15.0):
     """Calculates temperature correction value"""
-    delta_h = (-var/TEMP_GRADIENT) * log((1.0 + TEMP_GRADIENT * height * (TEMP_ISA + TEMP_GRADIENT * rwy_elevation)))
+    delta_h = ((-var/TEMP_GRADIENT) *
+               log((1.0 + TEMP_GRADIENT * height *
+                    (TEMP_ISA + TEMP_GRADIENT * runway_elevation))))
     return delta_h
 
 
-def MSD(indicated_airspeed, altitude, heading_start, heading_end, bank=25.0, var=15.0, flyover=False):
+def MSD(indicated_airspeed, altitude, heading_start, heading_end,
+        bank=25.0, var=15.0, flyover=False):
     """Calculates minimum stabilizing distance for segment"""
     true_airspeed = TAS(indicated_airspeed, altitude, var)
     theta = abs(turn_angle(heading_start, heading_end))
@@ -161,7 +164,8 @@ def MSD(indicated_airspeed, altitude, heading_start, heading_end, bank=25.0, var
         r2 = turn_radius(true_airspeed, 15.0)
         L1 = r1 * sin(radians(theta))
         L2 = r1 * cos(radians(theta)) * tan(radians(a))
-        L3 = r1 * (1 / sin(radians(a)) - 2.0 * cos(radians(theta)) / sin(radians(90.0 - a)))
+        L3 = r1 * (1 / sin(radians(a)) -
+                   2.0 * cos(radians(theta)) / sin(radians(90.0 - a)))
         L4 = r2 * tan(radians(a / 2.0))
         L5 = c * true_airspeed / 3600.0
         return L1 + L2 + L3 + L4 + L5
@@ -173,46 +177,52 @@ def MSD(indicated_airspeed, altitude, heading_start, heading_end, bank=25.0, var
         return L1 + L2
 
 
-def TRD(procedure):
+def TRD(distance, radius1, radius2, turn_angle1, turn_angle2):
+    return  (distance -
+             radius1 * tan(radians(turn_angle1 / 2)) -
+             radius2 * tan(radians(turn_angle2 / 2)) +
+             (pi * radius1 * turn_angle1) / 360 +
+             (pi * radius2 * turn_angle2) / 360)
+
+
+def procedure_length(procedure):
     """Calculates full procedure length considering turn anticipation"""
-    trd = 0.0
+    length = 0.0
     prev_turn_angle = 0.0
     for i in range(1, len(procedure)):
         if i < (len(procedure) - 1):
-            geo_point1 = procedure[i - 1].ref_point()
-            geo_point2 = procedure[i].ref_point()
-            geo_point3 = procedure[i + 1].ref_point()
-            segment1 = inverse(geo_point1.coordinates(), geo_point2.coordinates())
-            distance = segment1.distance()
-            heading1 = segment1.azimuth()
-            segment2 = inverse(geo_point2.coordinates(), geo_point3.coordinates())
-            heading2 = segment2.azimuth()
+            point1 = procedure[i - 1].ref_point()
+            point2 = procedure[i].ref_point()
+            point3 = procedure[i + 1].ref_point()
+            leg1 = inverse(point1.coordinates(),
+                           point2.coordinates(),
+                           subsequent=True)
+            distance = leg1.distance()
+            heading1 = leg1.azimuth()
+            leg2 = inverse(point2.coordinates(),
+                           point3.coordinates())
+            heading2 = leg2.azimuth()
             next_turn_angle = abs(turn_angle(heading1, heading2))
-            tas1 = TAS(procedure[i - 1].speed_limit(), procedure[i - 1].max_altitude())
-            tas2 = TAS(procedure[i].speed_limit(), procedure[i].max_altitude())
+            tas1 = TAS(procedure[i - 1].speed_limit(),
+                       procedure[i - 1].max_altitude())
+            tas2 = TAS(procedure[i].speed_limit(),
+                       procedure[i].max_altitude())
             r1 = turn_radius(tas1)
             r2 = turn_radius(tas2)
-            trd += (distance -
-                    r1 * tan(radians(prev_turn_angle / 2)) -
-                    r2 * tan(radians(next_turn_angle / 2)) +
-                    (pi * r1 * prev_turn_angle) / 360 +
-                    (pi * r2 * next_turn_angle) / 360
-                    )
+            length += TRD(distance, r1, r2, prev_turn_angle, next_turn_angle)
             prev_turn_angle = next_turn_angle
         else:
-            geo_point1 = procedure[i - 1].ref_point()
-            geo_point2 = procedure[i].ref_point()
-            segment = inverse(geo_point1.coordinates(), geo_point2.coordinates())
-            distance = segment.distance()
+            point1 = procedure[i - 1].ref_point()
+            point2 = procedure[i].ref_point()
+            leg = inverse(point1.coordinates(),
+                          point2.coordinates())
+            distance = leg.distance()
             next_turn_angle = 0.0
-            tas1 = TAS(procedure[i - 1].speed_limit(), procedure[i - 1].max_altitude())
-            tas2 = TAS(procedure[i].speed_limit(), procedure[i].max_altitude())
+            tas1 = TAS(procedure[i - 1].speed_limit(),
+                       procedure[i - 1].max_altitude())
+            tas2 = TAS(procedure[i].speed_limit(),
+                       procedure[i].max_altitude())
             r1 = turn_radius(tas1)
             r2 = turn_radius(tas2)
-            trd += (distance -
-                    r1 * tan(radians(prev_turn_angle / 2)) -
-                    r2 * tan(radians(next_turn_angle / 2)) +
-                    (pi * r1 * prev_turn_angle) / 360 +
-                    (pi * r2 * next_turn_angle) / 360
-                    )
-    return trd
+            length += TRD(distance, r1, r2, prev_turn_angle, next_turn_angle)
+    return length
